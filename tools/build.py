@@ -38,8 +38,23 @@ if args.api_url and not API_URL_RE.match(args.api_url):
     raise SystemExit('--api-url 格式不正確（應為 https://script.google.com/macros/s/.../exec）')
 if args.client_id and not CLIENT_RE.match(args.client_id):
     raise SystemExit('--client-id 格式不正確（應為 ....apps.googleusercontent.com）')
-if args.admin_url and not re.match(r'^https://[^\s"\'<>]+$', args.admin_url):
-    raise SystemExit('--admin-url 必須是 https 網址')
+from urllib.parse import urlparse
+
+if args.admin_url:
+    parsed_admin_url = urlparse(args.admin_url)
+
+    if (
+        parsed_admin_url.scheme != 'https'
+        or not parsed_admin_url.hostname
+        or parsed_admin_url.username
+        or parsed_admin_url.password
+        or parsed_admin_url.query
+        or parsed_admin_url.fragment
+    ):
+        raise SystemExit(
+            '--admin-url 必須是有效的 HTTPS 網址，'
+            '且不能包含帳密、查詢參數或 fragment'
+        )
 
 read = lambda p: p.read_text(encoding='utf-8')
 html_src, css_src, theme_src, app_src = read(SITE / 'index.html'), read(SITE / 'style.css'), read(SITE / 'theme-init.js'), read(SITE / 'app.js')
@@ -102,7 +117,15 @@ gh.mkdir()
 for f in ('style.css', 'app.js', 'theme-init.js', 'logo.png', 'favicon.png'):
     shutil.copy(SITE / f, gh / f)
 (gh / 'index.html').write_text(strip_versions(html_src), encoding='utf-8')
-(gh / 'config.js').write_text(config_js('api', args.api_url, args.client_id, ''), encoding='utf-8')
+(gh / 'config.js').write_text(
+    config_js(
+        'api',
+        args.api_url,
+        args.client_id,
+        args.admin_url
+    ),
+    encoding='utf-8'
+)
 (gh / '.nojekyll').write_text('', encoding='utf-8')
 (gh / 'README.md').write_text('# 山城資訊工作隊 網站\n\n靜態網站，部署在 GitHub Pages。資料由 Google Apps Script 後端提供；管理員以 Google 帳號登入後即可編輯內容。\n\n'
                               '- 設定檔：`config.js`（填入 Apps Script 網址與 OAuth Client ID，兩者皆為公開資訊）\n'
