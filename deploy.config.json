@@ -1,5 +1,8 @@
 {
   "api_url": "https://script.google.com/macros/s/AKfycbzh4YCMgDerobAVHnQ-21wHciyLO3EVWfqAgXisLbS8zOFgjHYqFF-LerNcyCQXv4k/exec",
   "client_id": "144524792168-vep1elictkb8ekcqfs4uju9rl3sibis2.apps.googleusercontent.com",
-  "admin_url": "https://na2co32.github.io/cst-introduce/"
+  "admin_url": "https://na2co32.github.io/cst-introduce/",
+  "github_repo": "Na2CO32/cst-introduce",
+  "script_id": "11rfbSsnt5vk_3cqKEjG-9gmne_L9M8SieMDiGlnSw5-Z6yjMYVheLNUh",
+  "default_admins": ["a0918731842@gmail.com"]
 }

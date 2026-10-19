@@ -24,6 +24,15 @@ import zipfile
 from urllib.parse import urlparse
 
 
+# 部署設定的唯一來源：專案根目錄的 deploy.config.json
+#   api_url         Apps Script 網頁應用程式網址（/exec 結尾）
+#   client_id       Google OAuth 用戶端 ID
+#   admin_url       GitHub Pages 網站網址（管理頁面）
+#   github_repo     GitHub repo（帳號/名稱），tools/set-visibility.sh 使用
+#   script_id       Apps Script 專案 ID，用來產生 .clasp.json
+#   default_admins  預設管理員 Email 清單，執行 setup 時加入
+
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = ROOT / 'site'
 GS = ROOT / 'apps-script'
@@ -42,6 +51,8 @@ ap.add_argument(
     help='忽略 deploy.config.json，產生未填正式設定的版本'
 )
 args = ap.parse_args()
+args.script_id = ''
+args.default_admins = []
 
 
 # ---------- 集中讀取部署設定 ----------
@@ -65,6 +76,8 @@ if cfg_path.exists() and not args.no_config:
     args.api_url = args.api_url or cfg.get('api_url', '')
     args.client_id = args.client_id or cfg.get('client_id', '')
     args.admin_url = args.admin_url or cfg.get('admin_url', '')
+    args.script_id = cfg.get('script_id', '')
+    args.default_admins = cfg.get('default_admins', [])
 
 
 # ---------- 設定值驗證 ----------
@@ -86,6 +99,24 @@ if not isinstance(args.client_id, str):
 
 if not isinstance(args.admin_url, str):
     raise SystemExit('admin_url 必須是字串')
+
+
+if not isinstance(args.script_id, str) or (
+    args.script_id and not re.fullmatch(r'[A-Za-z0-9_-]+', args.script_id)
+):
+    raise SystemExit('script_id 格式不正確')
+
+EMAIL_RE = re.compile(
+    r'^[A-Za-z0-9][A-Za-z0-9._%+\-]*@[A-Za-z0-9][A-Za-z0-9.\-]*\.[A-Za-z]{2,}$'
+)
+
+if not isinstance(args.default_admins, list) or not all(
+    isinstance(e, str) and EMAIL_RE.fullmatch(e.strip())
+    for e in args.default_admins
+):
+    raise SystemExit('default_admins 必須是 Email 字串清單')
+
+args.default_admins = sorted({e.strip().lower() for e in args.default_admins})
 
 
 if args.api_url and not API_URL_RE.fullmatch(args.api_url):
@@ -400,6 +431,21 @@ if args.client_id:
         1
     )
 
+if args.default_admins:
+    old_admins_setting = 'var BUILD_DEFAULT_ADMINS_ = [];'
+
+    if old_admins_setting not in code_gs:
+        raise SystemExit(
+            '找不到 Code.gs 中的預期設定：' + old_admins_setting
+        )
+
+    code_gs = code_gs.replace(
+        old_admins_setting,
+        'var BUILD_DEFAULT_ADMINS_ = %s;'
+        % json.dumps(args.default_admins),
+        1
+    )
+
 (asd / 'Code.gs').write_text(
     code_gs,
     encoding='utf-8'
@@ -421,6 +467,16 @@ shutil.copy(
 )
 
 written.append(('apps-script', asd))
+
+# clasp（Apps Script 命令列工具）設定，指向 dist/apps-script/。
+if args.script_id:
+    (ROOT / '.clasp.json').write_text(
+        json.dumps(
+            {'scriptId': args.script_id, 'rootDir': 'dist/apps-script'},
+            indent=2
+        ) + '\n',
+        encoding='utf-8'
+    )
 
 
 # ---------- 3. 單機版 ----------

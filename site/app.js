@@ -2,6 +2,8 @@
   'use strict';
 
   const CFG = window.APP_CONFIG || {};
+  // Google 登入腳本（Google 平台固定網址，非部署設定）。
+  const GSI_CLIENT_URL = 'https://accounts.google.com/gsi/client';
 
   // ---- 執行模式與設定檢查 ----
   const API_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
@@ -523,7 +525,7 @@
     if (!window.__gsiLoading) {
       window.__gsiLoading = true;
       const s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
+      s.src = GSI_CLIENT_URL;
       s.async = true; s.defer = true;
       document.head.appendChild(s);
     }

@@ -14,7 +14,7 @@
  *   SPREADSHEET_ID    試算表 ID
  *   GOOGLE_CLIENT_ID  Google Cloud 的 OAuth Web Client ID（與前端 config.js 相同）
  *
- * 試算表需有 Admins 工作表（Name | Email），先手動填入第一位管理員。
+ * 試算表需有 Admins 工作表（Name | Email）；執行 setup 會自動加入擁有者與預設管理員。
  */
 
 var REQUEST_EMAIL_ = ''; // 本次請求經 token 驗證後的使用者 Email
@@ -31,6 +31,15 @@ function userError_(msg) {
 // OAuth Client ID 是公開資訊（網頁原始碼裡本來就看得到），打包時可直接寫進這個常數；
 // 若腳本屬性有設定，以腳本屬性為準。
 var BUILD_CLIENT_ID_ = '';
+
+// 預設管理員 Email 清單，打包時由 deploy.config.json 的 default_admins 寫入。
+// 執行 setup 時會把清單中尚未加入的 Email 加進 Admins 工作表。
+var BUILD_DEFAULT_ADMINS_ = [];
+
+// Google 平台固定網址（非部署設定，與帳號無關）。
+var GOOGLE_TOKENINFO_URL_ = 'https://oauth2.googleapis.com/tokeninfo';
+var GOOGLE_ISSUERS_ = ['accounts.google.com', 'https://accounts.google.com'];
+var DRIVE_IMAGE_URL_PREFIX_ = 'https://lh3.googleusercontent.com/d/';
 
 function getProp_(key) {
   let v = PropertiesService.getScriptProperties().getProperty(key);
@@ -159,7 +168,7 @@ function verifyIdToken_(idToken) {
   globalLimit_('tokeninfo', 90, 60);   // 全站每分鐘最多向 Google 驗證 90 次
 
   const res = UrlFetchApp.fetch(
-    'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken),
+    GOOGLE_TOKENINFO_URL_ + '?id_token=' + encodeURIComponent(idToken),
     { muteHttpExceptions: true }
   );
   if (res.getResponseCode() !== 200) {
@@ -168,7 +177,7 @@ function verifyIdToken_(idToken) {
   }
 
   const info = JSON.parse(res.getContentText());
-  const okIssuer = info.iss === 'accounts.google.com' || info.iss === 'https://accounts.google.com';
+  const okIssuer = GOOGLE_ISSUERS_.includes(info.iss);
 
   if (info.aud !== getProp_('GOOGLE_CLIENT_ID') || !okIssuer ||
       String(info.email_verified) !== 'true' || !info.email || !(Number(info.exp) > nowSec)) {
@@ -261,6 +270,15 @@ function setup() {
   } else {
     message += '管理員名單已存在（不會覆寫）。\n';
   }
+  // 補上 deploy.config.json 設定的預設管理員（已存在的不會重複加入）。
+  const existing = getAdminEmails_();
+  BUILD_DEFAULT_ADMINS_.forEach(function (raw) {
+    const email = String(raw || '').toLowerCase().trim();
+    if (!EMAIL_RE_.test(email) || existing.includes(email)) return;
+    adminSheet.appendRow(['預設管理員', safeCell_(email)]);
+    existing.push(email);
+    message += '已將 ' + email + ' 設為預設管理員。\n';
+  });
   getContentSheet_();
   audit_('setup', owner);
   Logger.log(message);
@@ -367,7 +385,7 @@ function uploadImageToDrive_(base64Data, fileName) {
   const file = getImageFolder_().createFile(blob);
   // 網站訪客需要能讀取圖片（只有這個資料夾內、由本系統上傳的圖片會被公開）。
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return 'https://lh3.googleusercontent.com/d/' + file.getId();
+  return DRIVE_IMAGE_URL_PREFIX_ + file.getId();
 }
 
 var IMAGE_FOLDER_NAME_ = 'TeamSite-Images';
