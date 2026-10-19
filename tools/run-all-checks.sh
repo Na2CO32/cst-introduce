@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 # 一鍵執行所有資安與功能檢查。
 # 用法：bash tools/run-all-checks.sh
@@ -71,4 +70,3 @@ else
     echo "❌ 有檢查失敗，請查看上方輸出"
     exit 1
 fi
-```
