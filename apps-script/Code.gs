@@ -36,6 +36,10 @@ var BUILD_CLIENT_ID_ = '';
 // 執行 setup 時會把清單中尚未加入的 Email 加進 Admins 工作表。
 var BUILD_DEFAULT_ADMINS_ = [];
 
+// 舊後端的 API 網址，打包時由 deploy.config.json 的 import_from_api_url 寫入。
+// 執行 setup 時若網站內容是空的，會從這個網址匯入公開資料。
+var BUILD_IMPORT_API_URL_ = '';
+
 // Google 平台固定網址（非部署設定，與帳號無關）。
 var GOOGLE_TOKENINFO_URL_ = 'https://oauth2.googleapis.com/tokeninfo';
 var GOOGLE_ISSUERS_ = ['accounts.google.com', 'https://accounts.google.com'];
@@ -279,10 +283,31 @@ function setup() {
     existing.push(email);
     message += '已將 ' + email + ' 設為預設管理員。\n';
   });
-  getContentSheet_();
+  message += importFromOldApi_();
   audit_('setup', owner);
   Logger.log(message);
   return message;
+}
+
+// 從舊後端的公開 API 匯入網站內容；只在內容工作表還是空的時候執行，不會覆寫既有資料。
+function importFromOldApi_() {
+  const sheet = getContentSheet_();
+  if (!BUILD_IMPORT_API_URL_) return '';
+  if (sheet.getLastRow() >= 2) return '網站內容已存在（不會匯入）。\n';
+
+  const res = UrlFetchApp.fetch(BUILD_IMPORT_API_URL_ + '?action=public', { muteHttpExceptions: true });
+  const body = res.getResponseCode() === 200 ? JSON.parse(res.getContentText()) : null;
+  if (!body || !body.ok || !body.data) return '無法從舊後端匯入資料（HTTP ' + res.getResponseCode() + '）。\n';
+
+  const d = body.data;
+  writeDoc_('team', d.teamInfo || {});
+  writeDoc_('members', d.members || []);
+  ['values', 'timeline', 'projects', 'photos', 'news', 'contact'].forEach(function (k) {
+    writeDoc_(k, (d.extra && d.extra[k]) || []);
+  });
+  writeDoc_('home', d.home || {});
+  clearPublicCache_();
+  return '已從舊後端匯入網站內容。\n';
 }
 
 // 供「由 Apps Script 直接提供的網頁」讀取公開資料（唯讀，不含任何管理員資訊）。

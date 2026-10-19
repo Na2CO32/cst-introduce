@@ -31,6 +31,7 @@ from urllib.parse import urlparse
 #   github_repo     GitHub repo（帳號/名稱），tools/set-visibility.sh 使用
 #   script_id       Apps Script 專案 ID，用來產生 .clasp.json
 #   default_admins  預設管理員 Email 清單，執行 setup 時加入
+#   import_from_api_url  （選填）舊後端網址，執行 setup 時若內容是空的就從這裡匯入
 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -53,6 +54,7 @@ ap.add_argument(
 args = ap.parse_args()
 args.script_id = ''
 args.default_admins = []
+args.import_api_url = ''
 
 
 # ---------- 集中讀取部署設定 ----------
@@ -78,6 +80,7 @@ if cfg_path.exists() and not args.no_config:
     args.admin_url = args.admin_url or cfg.get('admin_url', '')
     args.script_id = cfg.get('script_id', '')
     args.default_admins = cfg.get('default_admins', [])
+    args.import_api_url = cfg.get('import_from_api_url', '')
 
 
 # ---------- 設定值驗證 ----------
@@ -117,6 +120,16 @@ if not isinstance(args.default_admins, list) or not all(
     raise SystemExit('default_admins 必須是 Email 字串清單')
 
 args.default_admins = sorted({e.strip().lower() for e in args.default_admins})
+
+
+if args.import_api_url and not (
+    isinstance(args.import_api_url, str)
+    and API_URL_RE.fullmatch(args.import_api_url)
+):
+    raise SystemExit(
+        'import_from_api_url 格式不正確，應為 '
+        'https://script.google.com/macros/s/.../exec'
+    )
 
 
 if args.api_url and not API_URL_RE.fullmatch(args.api_url):
@@ -443,6 +456,21 @@ if args.default_admins:
         old_admins_setting,
         'var BUILD_DEFAULT_ADMINS_ = %s;'
         % json.dumps(args.default_admins),
+        1
+    )
+
+if args.import_api_url:
+    old_import_setting = "var BUILD_IMPORT_API_URL_ = '';"
+
+    if old_import_setting not in code_gs:
+        raise SystemExit(
+            '找不到 Code.gs 中的預期設定：' + old_import_setting
+        )
+
+    code_gs = code_gs.replace(
+        old_import_setting,
+        'var BUILD_IMPORT_API_URL_ = %s;'
+        % json.dumps(args.import_api_url),
         1
     )
 
