@@ -6,7 +6,7 @@
 window.APP_CONFIG = {
   MODE: 'demo',
   // Apps Script 部署後的網頁應用程式網址（以 /exec 結尾）
-  API_URL: 'https://script.google.com/macros/s/請換成你的部署ID/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxA7jWE7RxdBAPN77FoIJQmZfR8CFAs-qmHw9e0loebtxThZXeg1jtfCOREUBcEelEQ/exec',
   // Google Cloud 的 OAuth Web Client ID（需與 Apps Script 腳本屬性 GOOGLE_CLIENT_ID 相同）
   GOOGLE_CLIENT_ID: '請換成你的ClientID.apps.googleusercontent.com',
   // （選填）embedded 模式下，指向可登入管理的網址（例如 GitHub Pages 的網址）
