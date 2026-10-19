@@ -754,4 +754,3 @@ function removeAdminImpl_(emailToRemove) {
   }
   return { status: 'success' };
 }
-
