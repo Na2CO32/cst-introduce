@@ -1,7 +1,8 @@
 (function() {
   'use strict';
 
-  const CFG = window.APP_CONFIG || {};
+  // config.js 以 Object.freeze 凍結，這裡複製一份，才能加上 DEMO_MODE 等執行期旗標。
+  const CFG = Object.assign({}, window.APP_CONFIG || {});
   // Google 登入腳本（Google 平台固定網址，非部署設定）。
   const GSI_CLIENT_URL = 'https://accounts.google.com/gsi/client';
 
