@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <!-- 內容安全政策：只允許自己的腳本、Google 登入、以及 Apps Script API。
+       若你的網域伺服器能設定 HTTP 標頭，建議同時在伺服器端設定（見 README）。 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' https://accounts.google.com/gsi/style 'sha256-RU4sU0AaS8IBGZx8XrGt/pa9A5SLA3dQszGeqT5L3Kw='; img-src 'self' data: blob: https://lh3.googleusercontent.com; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <title>團隊介紹</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css?v=1792160272">
+  <script src="theme-init.js?v=1792160272"></script>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <a class="skip-link" href="#main" data-i18n="skip">跳到主要內容</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#home-page" data-page="home-page"><span class="brand-mark" aria-hidden="true"><img src="logo.png" alt="" width="52" height="52"></span><span id="brand-name">Team</span></a>
+
+      <nav class="nav-tabs" role="tablist" id="main-nav" data-i18n-aria="nav_label">
+        <button class="tab-btn active" role="tab" data-page="home-page" data-i18n="nav_home">首頁</button>
+        <button class="tab-btn" role="tab" data-page="team-page" data-i18n="nav_about">關於我們</button>
+        <button class="tab-btn" role="tab" data-page="members-page" data-i18n="nav_members">成員</button>
+        <button class="tab-btn" role="tab" data-page="projects-page" data-i18n="nav_projects">作品</button>
+        <button class="tab-btn" role="tab" data-page="gallery-page" data-i18n="nav_gallery">相簿</button>
+        <button class="tab-btn" role="tab" data-page="news-page" data-i18n="nav_news">最新消息</button>
+        <button class="tab-btn" role="tab" data-page="contact-page" data-i18n="nav_contact">聯絡我們</button>
+        <button class="tab-btn admin-only hidden" role="tab" data-page="admin-page" data-i18n="nav_admin">管理員設定</button>
+      </nav>
+
+      <div class="header-tools">
+        <button class="icon-btn" id="btn-lang" type="button" data-i18n-aria="switch_lang"><span id="lang-label">EN</span></button>
+        <button class="icon-btn" id="btn-theme" type="button" data-i18n-aria="switch_theme">
+          <svg class="ic ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="ic ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <div class="login-area">
+          <div class="user-info" id="user-status" role="status" aria-live="polite"></div>
+          <div id="g-signin"></div>
+          <button class="btn btn-ghost btn-sm hidden" id="btn-logout" type="button" data-i18n="logout">登出</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="mode-banner hidden" id="mode-banner" role="note"></div>
+
+  <main id="main" tabindex="-1">
+
+  <!-- ==================== 首頁 ==================== -->
+  <div id="home-page" class="page">
+    <section class="hero">
+      <canvas class="hero-canvas" id="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <span class="eyebrow" data-i18n="hero_eyebrow">團隊介紹</span>
+        <h1 class="hero-headline skeleton" id="home-title">Loading</h1>
+        <p class="hero-tagline" id="home-tagline"></p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" type="button" data-page="projects-page" data-i18n="view_projects">查看作品</button>
+          <button class="btn btn-secondary btn-lg" type="button" data-page="members-page" data-i18n="meet_members">認識成員</button>
+        </div>
+        <button class="btn btn-secondary btn-sm admin-only hidden hero-edit" type="button" data-act="open-home" data-i18n="edit_home">編輯首頁文字</button>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="stats" id="home-stats" data-i18n-aria="stats_label"></section>
+
+      <section class="block c1">
+        <div class="block-head"><h2 data-i18n="values_title">我們重視的事</h2><p class="hint" data-i18n="values_sub">比起漂亮的口號，我們更在意實際做出來的成果。</p>
+          <button class="btn btn-primary btn-sm admin-only hidden" data-add="values" data-i18n="add_value">+ 新增價值</button></div>
+        <div class="values-grid" id="home-values"></div>
+      </section>
+
+      <section class="block c2">
+        <div class="block-head">
+          <h2 data-i18n="featured_projects">精選作品</h2>
+          <button class="link-btn" type="button" data-page="projects-page" data-i18n="all_projects">全部作品 →</button>
+        </div>
+        <div class="project-grid" id="home-projects"></div>
+      </section>
+
+      <section class="block c3">
+        <div class="block-head">
+          <h2 data-i18n="nav_gallery">相簿</h2>
+          <button class="link-btn" type="button" data-page="gallery-page" data-i18n="all_photos">查看全部照片 →</button>
+        </div>
+        <div class="photo-strip" id="home-gallery"></div>
+      </section>
+
+      <section class="block c4">
+        <div class="block-head">
+          <h2 data-i18n="nav_news">最新消息</h2>
+          <button class="link-btn" type="button" data-page="news-page" data-i18n="more_news">更多消息 →</button>
+        </div>
+        <div class="news-list" id="home-news"></div>
+      </section>
+
+      <section class="cta-band">
+        <div>
+          <h2 data-i18n="cta_title">想和我們一起合作嗎？</h2>
+          <p data-i18n="cta_text">無論是合作提案，或只是想聊聊，都歡迎來信。</p>
+        </div>
+        <button class="btn btn-light btn-lg" type="button" data-page="contact-page" data-i18n="nav_contact">聯絡我們</button>
+      </section>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ==================== 關於我們 ==================== -->
+    <div id="team-page" class="page hidden">
+      <div class="page-title">
+        <h2 data-i18n="nav_about">關於我們</h2>
+        <button class="btn btn-primary admin-only hidden" data-act="open-team" data-i18n="edit_team">編輯團隊介紹</button>
+      </div>
+
+      <div class="card team-hero-card">
+        <div class="team-hero">
+          <img id="team-img" class="team-hero-img hidden" alt="">
+          <div class="team-hero-overlay">
+            <h3 class="team-hero-title skeleton" id="team-title">Loading</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hero-desc team-description skeleton" id="team-desc"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <h3 class="card-title flush" data-i18n="history">我們的歷程</h3>
+          <button class="btn btn-primary btn-sm admin-only hidden" data-add="timeline" data-i18n="add_timeline">+ 新增歷程</button>
+        </div>
+        <ol class="timeline" id="timeline"></ol>
+      </div>
+    </div>
+
+    <!-- ==================== 成員 ==================== -->
+    <div id="members-page" class="page hidden">
+      <div class="page-title">
+        <h2 data-i18n="nav_members">成員</h2>
+        <button class="btn btn-primary admin-only hidden" data-add="members" data-i18n="add_member">+ 新增成員</button>
+      </div>
+      <div class="member-grid" id="member-list"></div>
+    </div>
+
+    <div id="member-detail-page" class="page hidden">
+      <div class="card">
+        <button class="btn btn-secondary back-btn" data-act="back-members" data-i18n="back_members">← 返回成員</button>
+        <div class="member-detail" id="member-detail-content"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 作品 ==================== -->
+    <div id="projects-page" class="page hidden">
+      <div class="page-title"><h2 data-i18n="nav_projects">作品</h2>
+        <button class="btn btn-primary admin-only hidden" data-add="projects" data-i18n="add_project">+ 新增作品</button>
+      </div>
+      <div class="chips" id="project-filters" role="group" data-i18n-aria="project_filter"></div>
+      <div class="project-grid" id="project-list"></div>
+    </div>
+
+    <!-- ==================== 相簿 ==================== -->
+    <div id="gallery-page" class="page hidden">
+      <div class="page-title"><h2 data-i18n="nav_gallery">相簿</h2>
+        <button class="btn btn-primary admin-only hidden" data-add="photos" data-i18n="add_photo">+ 新增照片</button>
+      </div>
+      <div class="chips" id="gallery-filters" role="group" data-i18n-aria="album_filter"></div>
+      <div class="photo-grid" id="gallery-list"></div>
+    </div>
+
+    <!-- ==================== 最新消息 ==================== -->
+    <div id="news-page" class="page hidden">
+      <div class="page-title"><h2 data-i18n="nav_news">最新消息</h2>
+        <button class="btn btn-primary admin-only hidden" data-add="news" data-i18n="add_news">+ 新增消息</button>
+      </div>
+      <div class="news-list" id="news-list"></div>
+    </div>
+
+    <!-- ==================== 聯絡我們 ==================== -->
+    <div id="contact-page" class="page hidden">
+      <div class="page-title"><h2 data-i18n="nav_contact">聯絡我們</h2>
+        <button class="btn btn-primary admin-only hidden" data-add="contact" data-i18n="add_contact">+ 新增聯絡方式</button>
+      </div>
+      <div class="contact-grid" id="contact-list"></div>
+    </div>
+
+    <!-- ==================== 管理員 ==================== -->
+    <div id="admin-page" class="page hidden">
+      <div class="card">
+        <div class="section-header">
+          <span class="section-title" data-i18n="admin_title">管理員名單控制</span>
+          <div class="section-actions">
+            <button class="btn btn-secondary btn-sm local-only hidden" data-act="reset-local" data-i18n="reset_local">重設本機資料</button>
+            <button class="btn btn-primary" data-act="open-admin" data-i18n="add_admin">+ 新增管理員</button>
+          </div>
+        </div>
+        <p class="hint" data-i18n="admin_desc">只有列表中的 Email 能取得此系統的編輯與管理權限。</p>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr>
+              <th data-i18n="th_name">姓名</th><th>Email</th><th data-i18n="th_action">操作</th>
+            </tr></thead>
+            <tbody id="admin-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand"><img src="logo.png" alt="" width="28" height="28"><span id="footer-name">Team</span></span>
+      <span class="hint" id="copyright"></span>
+    </div>
+  </footer>
+
+  
+  
+  <!-- 新增管理員 -->
+  <div class="modal" id="add-admin-modal" role="dialog" aria-modal="true" aria-labelledby="add-admin-h">
+    <div class="modal-content">
+      <h3 id="add-admin-h" data-i18n="add_admin_title">新增管理員</h3>
+      <div class="form-group"><label for="add-admin-name" data-i18n="admin_name">管理員姓名</label>
+        <input type="text" id="add-admin-name" maxlength="100"></div>
+      <div class="form-group"><label for="add-admin-email" data-i18n="admin_email">Google Email 帳號</label>
+        <input type="email" id="add-admin-email" maxlength="200" placeholder="example@gmail.com"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close="add-admin-modal" data-i18n="cancel">取消</button>
+        <button class="btn btn-primary" id="btn-save-admin" data-act="save-admin" data-i18n="confirm_add">確定新增</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用項目編輯 -->
+  <div class="modal" id="item-modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+    <div class="modal-content wide">
+      <h3 id="item-modal-title"></h3>
+      <div id="item-form"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close="item-modal" data-i18n="cancel">取消</button>
+        <button class="btn btn-primary" id="btn-save-item" data-act="save-item" data-i18n="save">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 網站文字編輯 -->
+  <div class="modal" id="home-modal" role="dialog" aria-modal="true" aria-labelledby="home-modal-h">
+    <div class="modal-content wide">
+      <h3 id="home-modal-h" data-i18n="edit_home_title">編輯首頁文字</h3>
+      <p class="hint" data-i18n="home_hint">每個欄位都有中文與英文版本；欄位留空或與預設相同，就使用預設文字。團隊名稱請到「關於我們」頁編輯。</p>
+      <div id="home-form"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-close="home-modal" data-i18n="cancel">取消</button>
+        <button class="btn btn-primary" id="btn-save-home" data-act="save-home" data-i18n="save">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 確認視窗 -->
+  <div class="modal" id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-text">
+    <div class="modal-content">
+      <h3 id="confirm-text"></h3>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="confirm-no" data-i18n="cancel">取消</button>
+        <button class="btn btn-danger" id="confirm-yes" data-i18n="confirm_ok">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 相片燈箱 -->
+  <div class="modal lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button class="lb-btn lb-close" id="lb-close" type="button" data-close="lightbox" data-i18n-aria="close">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="lb-btn lb-prev" id="lb-prev" type="button" data-i18n-aria="prev">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <figure class="lb-figure">
+      <img id="lb-img" alt="">
+      <figcaption><span id="lb-caption"></span><span class="lb-count" id="lb-count"></span></figcaption>
+    </figure>
+    <button class="lb-btn lb-next" id="lb-next" type="button" data-i18n-aria="next">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <button class="to-top" id="to-top" type="button" data-i18n-aria="to_top">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <div class="toast-box" id="toast-box" aria-live="polite"></div>
+
+  <script src="config.js?v=1792125906"></script>
+  <script src="app.js?v=1792160293"></script>
+</body>
+</html>
