@@ -241,6 +241,16 @@ def strip_versions(html):
     return re.sub(r'(\.(?:css|js))\?v=\d+', r'\1', html)
 
 
+def stamp_versions(html, folder):
+    """依檔案內容雜湊加上版本參數，讓每次部署都會讓瀏覽器重新下載 CSS/JS。"""
+
+    def repl(m):
+        digest = hashlib.sha256((folder / m.group(1)).read_bytes()).hexdigest()[:10]
+        return '%s?v=%s' % (m.group(1), digest)
+
+    return re.sub(r'(?<=")([\w-]+\.(?:css|js))(?=")', repl, strip_versions(html))
+
+
 def inline_build(mode, *, csp, frame_guard, admin_url=''):
     """把 CSS、JavaScript、圖片內嵌成單一 HTML。"""
 
@@ -385,11 +395,6 @@ for filename in (
 ):
     shutil.copy(SITE / filename, gh / filename)
 
-(gh / 'index.html').write_text(
-    strip_versions(html_src),
-    encoding='utf-8'
-)
-
 # 正確傳入 API、Client ID 與管理網站網址。
 # 這裡不再把 ADMIN_URL 固定成空字串。
 (gh / 'config.js').write_text(
@@ -399,6 +404,12 @@ for filename in (
         args.client_id,
         args.admin_url
     ),
+    encoding='utf-8'
+)
+
+# config.js 產生後才能算出雜湊。
+(gh / 'index.html').write_text(
+    stamp_versions(html_src, gh),
     encoding='utf-8'
 )
 
